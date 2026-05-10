@@ -16,3 +16,14 @@ structure Drawing where
   vertices_in_univ : ↑vertices ⊆ univ
   edges_finite : Finite (ZerothHomotopy ↑(univ \ vertices))
   edges_are_line : ∀ x ∈ (univ \ vertices), IsDrawingEdge (pathComponentIn (univ \ vertices) x)
+
+def Drawing.HasEdge (g : Drawing) (u v : g.vertices) :=
+  ∃ x ∈ (g.univ \ g.vertices),
+    let e := pathComponentIn (g.univ \ g.vertices) x
+    closure e \ e = {↑u, ↑v}
+
+def IsColoring (g : Drawing) (α : Type*) (f : g.vertices → α) :=
+  ∀ u v : g.vertices, g.HasEdge u v → f u ≠ f v
+
+theorem four_color_theorem (g : Drawing) : ∃ f, IsColoring g (Fin 4) f := by
+  sorry
