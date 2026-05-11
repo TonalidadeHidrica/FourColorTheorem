@@ -21,6 +21,8 @@ def PreDrawing.edges (g : PreDrawing) : Set (Set g.edges_union) :=
   (pathSetoid g.edges_union).classes
 def PreDrawing.edge_ends {g : PreDrawing} (e : g.edges) : Set S2 :=
   closureMinusItself (T := S2) e.val
+-- def PreDrawing.edge_vertex_incident {g : PreDrawing} (v : g.vertices) (e : g.edges) :=
+--   (v: S2) ∈ g.edge_ends e
 
 structure Drawing extends PreDrawing where
   univ_closed : IsClosed univ
@@ -28,13 +30,15 @@ structure Drawing extends PreDrawing where
   edges_finite : Finite toPreDrawing.edges
   edges_IsDrawingEdge : ∀ e ∈ toPreDrawing.edges, IsDrawingEdge e
 
--- def Drawing.edge_ends {g : Drawing} (e : g.edges) : Set g.vertices :=
---   closureMinusItself (T := S2) e.val
-
-def Drawing.edge_vertex_incident {g : Drawing} (v : g.vertices) (e : g.edges) :=
-  (v: S2) ∈ g.edge_ends e
-
--- set_option pp.coercions.types true
+theorem Drawing.edge_ends_are_vertices
+    {g : Drawing} {e : g.edges} {v : S2} (h : v ∈ g.edge_ends e) : v ∈ g.vertices := by
+  unfold PreDrawing.edge_ends closureMinusItself at h
+  set e' := (e.val: Set S2) with he'
+  have: closure e' ⊆ g.univ := by
+    refine closure_minimal ?_ g.univ_closed
+    unfold PreDrawing.edges at e
+    sorry
+  sorry
 
 def Drawing.toGraph (g : Drawing) : Graph g.vertices g.edges where
   vertexSet := Set.univ
@@ -49,7 +53,7 @@ def Drawing.toGraph (g : Drawing) : Graph g.vertices g.edges where
     simp only [Set.mem_univ, true_iff]
     intro e
     obtain ⟨hom, hhom⟩ := g.edges_IsDrawingEdge e.val e.prop
-    use (hom 0)
+    sorry
   left_mem_of_isLink := by simp
 
 -- structure Drawing where
