@@ -1,29 +1,54 @@
-import Mathlib.Topology.MetricSpace.Pseudo.Defs
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Data.Setoid.Partition
+import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 set_option linter.style.longLine false
 
 abbrev R3 := EuclideanSpace ℝ (Fin 3)
 abbrev S2 := Metric.sphere (0 : R3) 1
 
+def closureMinusItself {T : Type*} [TopologicalSpace T] (e : Set T) := closure e \ e
 def IsDrawingEdge (e : Set S2) : Prop :=
-  ∃ f : unitInterval ≃ₜ closure e, closure e \ e = {↑(f 0), ↑(f 1)}
+  ∃ f : unitInterval ≃ₜ closure e, closureMinusItself e = {↑(f 0), ↑(f 1)}
 
-structure Drawing where
+structure PreDrawing where
   univ : Set S2
-  univ_closed : IsClosed univ
   vertices : Finset S2
+
+def PreDrawing.edges_union (g : PreDrawing) : Set S2 := g.univ \ g.vertices
+def PreDrawing.edges (g : PreDrawing) : Set (Set g.edges_union) :=
+  (pathSetoid g.edges_union).classes
+def PreDrawing.edge_ends {g : PreDrawing} (e : g.edges) := closureMinusItself (T := S2) e.val
+
+structure Drawing extends PreDrawing where
+  univ_closed : IsClosed univ
   vertices_in_univ : ↑vertices ⊆ univ
-  edges_finite : Finite (ZerothHomotopy ↑(univ \ vertices))
-  edges_are_line : ∀ x ∈ (univ \ vertices), IsDrawingEdge (pathComponentIn (univ \ vertices) x)
+  edges_finite : Finite toPreDrawing.edges
+  edges_IsDrawingEdge : ∀ e ∈ toPreDrawing.edges, IsDrawingEdge e
 
-def Drawing.HasEdge (g : Drawing) (u v : g.vertices) :=
-  ∃ x ∈ (g.univ \ g.vertices),
-    let e := pathComponentIn (g.univ \ g.vertices) x
-    closure e \ e = {↑u, ↑v}
+def Drawing.edge_vertex_incident {g : Drawing} (v : g.vertices) (e : g.edges) :=
+  (v: S2) ∈ g.edge_ends e
 
-def IsColoring (g : Drawing) (α : Type*) (f : g.vertices → α) :=
-  ∀ u v : g.vertices, g.HasEdge u v → f u ≠ f v
-
-theorem four_color_theorem (g : Drawing) : ∃ f, IsColoring g (Fin 4) f := by
-  sorry
+-- structure Drawing where
+--   univ : Set S2
+--   univ_closed : IsClosed univ
+--   vertices : Finset S2
+--   vertices_in_univ : ↑vertices ⊆ univ
+--   edges_finite : Finite (ZerothHomotopy ↑(univ \ vertices))
+--   edges_are_line : ∀ x ∈ (univ \ vertices), IsDrawingEdge (pathComponentIn (univ \ vertices) x)
+-- 
+-- def Drawing.edge_set (g : Drawing) := g.univ \ g.vertices
+-- def Drawing.Edge (g : Drawing) := ZerothHomotopy ↑g.edge_set
+-- def edge_ends {g: Drawing} (e: g.Edge) := closure e \ e
+-- def Drawing.edge_vertex_incident {g: Drawing} (v: g.vertices) (e: g.Edge) := v ∈ edge_ends e
+-- 
+-- def Drawing.HasEdge (g : Drawing) (u v : g.vertices) :=
+--   ∃ x ∈ (g.univ \ g.vertices),
+--     let e := pathComponentIn (g.univ \ g.vertices) x
+--     closure e \ e = {↑u, ↑v}
+-- 
+-- def IsColoring (g : Drawing) (α : Type*) (f : g.vertices → α) :=
+--   ∀ u v : g.vertices, g.HasEdge u v → f u ≠ f v
+-- 
+-- theorem four_color_theorem (g : Drawing) : ∃ f, IsColoring g (Fin 4) f := by
+--   sorry
