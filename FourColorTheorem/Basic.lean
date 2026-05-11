@@ -1,4 +1,5 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Combinatorics.Graph.Basic
 import Mathlib.Data.Setoid.Partition
 import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
@@ -18,7 +19,8 @@ structure PreDrawing where
 def PreDrawing.edges_union (g : PreDrawing) : Set S2 := g.univ \ g.vertices
 def PreDrawing.edges (g : PreDrawing) : Set (Set g.edges_union) :=
   (pathSetoid g.edges_union).classes
-def PreDrawing.edge_ends {g : PreDrawing} (e : g.edges) := closureMinusItself (T := S2) e.val
+def PreDrawing.edge_ends {g : PreDrawing} (e : g.edges) : Set S2 :=
+  closureMinusItself (T := S2) e.val
 
 structure Drawing extends PreDrawing where
   univ_closed : IsClosed univ
@@ -26,8 +28,29 @@ structure Drawing extends PreDrawing where
   edges_finite : Finite toPreDrawing.edges
   edges_IsDrawingEdge : ∀ e ∈ toPreDrawing.edges, IsDrawingEdge e
 
+-- def Drawing.edge_ends {g : Drawing} (e : g.edges) : Set g.vertices :=
+--   closureMinusItself (T := S2) e.val
+
 def Drawing.edge_vertex_incident {g : Drawing} (v : g.vertices) (e : g.edges) :=
   (v: S2) ∈ g.edge_ends e
+
+-- set_option pp.coercions.types true
+
+def Drawing.toGraph (g : Drawing) : Graph g.vertices g.edges where
+  vertexSet := Set.univ
+  IsLink e u v := g.edge_ends e = {(u: S2), (v: S2)}
+  edgeSet := Set.univ
+  isLink_symm := by intro e he u v; grind
+  eq_or_eq_of_isLink_of_isLink := by
+    intro e u v x y huv hxy
+    rw [huv, Set.pair_eq_pair_iff] at hxy
+    grind
+  edge_mem_iff_exists_isLink := by
+    simp only [Set.mem_univ, true_iff]
+    intro e
+    obtain ⟨hom, hhom⟩ := g.edges_IsDrawingEdge e.val e.prop
+    use (hom 0)
+  left_mem_of_isLink := by simp
 
 -- structure Drawing where
 --   univ : Set S2
