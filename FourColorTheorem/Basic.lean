@@ -30,15 +30,56 @@ structure Drawing extends PreDrawing where
   edges_finite : Finite toPreDrawing.edges
   edges_IsDrawingEdge : ∀ e ∈ toPreDrawing.edges, IsDrawingEdge e
 
+-- set_option pp.coercions false
+-- set_option pp.coercions.types true
+-- set_option pp.notation false
+
+lemma my_lemma
+    {α : Type*} {r : Setoid α} {c : Set α} (hc : c ∈ r.classes)
+    {x y : α} (hx : x ∈ c) (hy : y ∉ c) :
+      ¬ r x y := by
+  contrapose hy
+  simp only [Setoid.classes, Set.mem_setOf_eq] at hc
+  obtain ⟨z, hz⟩ := hc
+  simp only [hz, Set.mem_setOf_eq] at hx ⊢
+  trans x
+  · symm; tauto
+  · tauto
+
 theorem Drawing.edge_ends_are_vertices
     {g : Drawing} {e : g.edges} {v : S2} (h : v ∈ g.edge_ends e) : v ∈ g.vertices := by
-  unfold PreDrawing.edge_ends closureMinusItself at h
+  unfold PreDrawing.edge_ends at h
+  obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e.val e.prop
+  have: ∃ t: unitInterval, v = f t := by
+    rw [hf] at h
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at h
+    cases h
+    · use 0
+    · use 1
+  obtain ⟨t, ht⟩ := this
+  unfold closureMinusItself at h
+  rw [Set.mem_diff] at h
+  obtain ⟨hvce', hve'⟩ := h
   set e' := (e.val: Set S2) with he'
   have: closure e' ⊆ g.univ := by
-    refine closure_minimal ?_ g.univ_closed
-    unfold PreDrawing.edges at e
-    sorry
+    apply closure_minimal _ g.univ_closed
+    trans g.edges_union
+    · unfold e'; simp
+    · simp [PreDrawing.edges_union]
+  have hvu: v ∈ g.univ := Set.mem_of_mem_of_subset (by tauto) this
+  by_contra hvv
+  have hv: v ∈ g.edges_union := by simp [PreDrawing.edges_union]; tauto
+  unfold PreDrawing.edges at e
+  clear hvu hvv
+  obtain ⟨e, he⟩ := e
+  have {x: g.edges_union} (hx: x ∈ e): ¬ Joined x ⟨v, hv⟩ := by
+    change ¬ pathSetoid _ _ _
+    apply my_lemma he hx
+    grind
   sorry
+
+example {α : Type*} (s : Set α) (e : s) : e.val ∈ s := by
+  simp only [Subtype.coe_prop]
 
 def Drawing.toGraph (g : Drawing) : Graph g.vertices g.edges where
   vertexSet := Set.univ
