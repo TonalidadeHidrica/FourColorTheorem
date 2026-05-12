@@ -46,37 +46,86 @@ lemma my_lemma
   · symm; tauto
   · tauto
 
+-- obtain ⟨patt⟩ : type := proof
+-- is equivalent to
+-- 
+-- have h : type := proof
+-- rcases h with ⟨patt⟩
+
 theorem Drawing.edge_ends_are_vertices
-    {g : Drawing} {e : g.edges} {v : S2} (h : v ∈ g.edge_ends e) : v ∈ g.vertices := by
-  unfold PreDrawing.edge_ends at h
-  obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e.val e.prop
-  have: ∃ t: unitInterval, v = f t := by
-    rw [hf] at h
-    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at h
-    cases h
-    · use 0
-    · use 1
-  obtain ⟨t, ht⟩ := this
-  unfold closureMinusItself at h
-  rw [Set.mem_diff] at h
-  obtain ⟨hvce', hve'⟩ := h
-  set e' := (e.val: Set S2) with he'
-  have: closure e' ⊆ g.univ := by
-    apply closure_minimal _ g.univ_closed
-    trans g.edges_union
-    · unfold e'; simp
-    · simp [PreDrawing.edges_union]
-  have hvu: v ∈ g.univ := Set.mem_of_mem_of_subset (by tauto) this
+    {g : Drawing} {e : g.edges} {v : S2} (hv : v ∈ g.edge_ends e) : v ∈ g.vertices := by
   by_contra hvv
+  have hvu: v ∈ g.univ := by
+    sorry
   have hv: v ∈ g.edges_union := by simp [PreDrawing.edges_union]; tauto
-  unfold PreDrawing.edges at e
-  clear hvu hvv
-  obtain ⟨e, he⟩ := e
-  have {x: g.edges_union} (hx: x ∈ e): ¬ Joined x ⟨v, hv⟩ := by
-    change ¬ pathSetoid _ _ _
-    apply my_lemma he hx
-    grind
-  sorry
+  clear hvv hvu
+
+  obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e.val e.prop
+  have h_joined : ∀ x ∈ e.val, Joined x ⟨v, hv⟩ := by
+    intro x hx
+    sorry
+  have h_not_joined : ∀ x ∈ e.val, ¬Joined x ⟨v, hv⟩ := by
+    intro x hx
+    sorry
+
+  set x := (f ⟨1/2, by simp; linarith⟩).val with hx
+  have : x ∈ (e.val : Set S2) := by
+    sorry
+  have hx : x ∈ g.edges_union := by
+    sorry
+  have hx' : ⟨x, hx⟩ ∈ e.val := by
+    sorry
+  specialize h_joined ⟨x, hx⟩ hx'
+  specialize h_not_joined ⟨x, hx⟩ hx'
+  tauto
+
+  -- have hv: v ∈ g.edges_union := by
+  --   sorry
+  -- obtain ⟨e, he⟩ := e
+  -- rcases e with ⟨e, he⟩
+  -- obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e he
+  -- have: ∃ t: unitInterval, v = f t := by
+  --   unfold PreDrawing.edge_ends at hv
+  --   rw [hf] at hv
+  --   simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hv
+  --   cases hv
+  --   · use 0
+  --   · use 1
+  -- obtain ⟨t, ht⟩ := this
+  -- have {x: g.edges_union} (hx: x ∈ e): ¬ Joined x ⟨v, hv⟩ := by
+  --   change ¬ pathSetoid _ _ _
+  --   apply my_lemma he hx
+  --   grind
+
+  -- unfold PreDrawing.edge_ends at hv
+  -- unfold PreDrawing.edge_ends at h
+  -- obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e.val e.prop
+  -- have: ∃ t: unitInterval, v = f t := by
+  --   rw [hf] at h
+  --   simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at h
+  --   cases h
+  --   · use 0
+  --   · use 1
+  -- obtain ⟨t, ht⟩ := this
+  -- unfold closureMinusItself at h
+  -- rw [Set.mem_diff] at h
+  -- obtain ⟨hvce', hve'⟩ := h
+  -- set e' := (e.val: Set S2) with he'
+  -- have: closure e' ⊆ g.univ := by
+  --   apply closure_minimal _ g.univ_closed
+  --   trans g.edges_union
+  --   · unfold e'; simp
+  --   · simp [PreDrawing.edges_union]
+  -- have hvu: v ∈ g.univ := Set.mem_of_mem_of_subset (by tauto) this
+  -- by_contra hvv
+  -- have hv: v ∈ g.edges_union := by simp [PreDrawing.edges_union]; tauto
+  -- unfold PreDrawing.edges at e
+  -- clear hvu hvv
+  -- obtain ⟨e, he⟩ := e
+  -- have {x: g.edges_union} (hx: x ∈ e): ¬ Joined x ⟨v, hv⟩ := by
+  --   change ¬ pathSetoid _ _ _
+  --   apply my_lemma he hx
+  --   grind
 
 example {α : Type*} (s : Set α) (e : s) : e.val ∈ s := by
   simp only [Subtype.coe_prop]
