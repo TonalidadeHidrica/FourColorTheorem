@@ -28,7 +28,7 @@ structure Drawing extends PreDrawing where
   univ_closed : IsClosed univ
   vertices_in_univ : ↑vertices ⊆ univ
   edges_finite : Finite toPreDrawing.edges
-  edges_IsDrawingEdge : ∀ e ∈ toPreDrawing.edges, IsDrawingEdge e
+  edges_IsDrawingEdge : ∀ e: toPreDrawing.edges, IsDrawingEdge e
 
 -- set_option pp.coercions false
 -- set_option pp.coercions.types true
@@ -52,11 +52,13 @@ lemma my_lemma
 -- have h : type := proof
 -- rcases h with ⟨patt⟩
 
+-- set_option pp.coercions false
+
 theorem Drawing.edge_ends_are_vertices
     {g : Drawing} {e : g.edges} {v : S2} (hvee : v ∈ g.edge_ends e) : v ∈ g.vertices := by
   by_contra hvv
 
-  obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e.val e.prop
+  obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e
   have h_not_joined : ∀ x ∈ e.val, ¬Joined x v := by
     sorry
   have h_joined : ∀ x ∈ e.val, Joined x v := by
@@ -65,7 +67,17 @@ theorem Drawing.edge_ends_are_vertices
 
   set x := (f ⟨1/2, by simp; linarith⟩).val with hx
   have : x ∈ e.val := by
-    sorry
+    have h1: x ∈ closure (e: Set S2) := by simp only [hx, Subtype.coe_prop]
+    by_contra h2
+    have := Set.mem_diff_of_mem h1 h2
+    unfold closureMinusItself at hf
+    simp only [hx, hf, Set.mem_insert_iff, Set.mem_singleton_iff] at this
+    rcases this with h | h <;> (
+      rw [← Subtype.ext_iff] at h
+      rw [Function.Injective.eq_iff (Homeomorph.injective f)] at h
+      apply congr_arg Subtype.val at h
+      simp at h
+    )
   specialize h_joined x
   specialize h_not_joined x
   tauto
