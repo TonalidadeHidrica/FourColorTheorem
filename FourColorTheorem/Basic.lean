@@ -6,7 +6,7 @@ import Mathlib.Topology.MetricSpace.Pseudo.Defs
 set_option linter.style.longLine false
 
 abbrev R3 := EuclideanSpace ℝ (Fin 3)
-abbrev S2 := Metric.sphere (0 : R3) 1
+abbrev S2 := ↥(Metric.sphere (0 : R3) 1)
 
 def closureMinusItself {T : Type*} [TopologicalSpace T] (e : Set T) := closure e \ e
 def IsDrawingEdge (e : Set S2) : Prop :=
@@ -17,8 +17,8 @@ structure PreDrawing where
   vertices : Finset S2
 
 def PreDrawing.edges_union (g : PreDrawing) : Set S2 := g.univ \ g.vertices
-def PreDrawing.edges (g : PreDrawing) : Set (Set g.edges_union) :=
-  (pathSetoid g.edges_union).classes
+def PreDrawing.edges (g : PreDrawing) : Set (Set S2) :=
+  (fun (x: Set g.edges_union) ↦ ↑x) '' (pathSetoid g.edges_union).classes
 def PreDrawing.edge_ends {g : PreDrawing} (e : g.edges) : Set S2 :=
   closureMinusItself (T := S2) e.val
 -- def PreDrawing.edge_vertex_incident {g : PreDrawing} (v : g.vertices) (e : g.edges) :=
@@ -53,31 +53,33 @@ lemma my_lemma
 -- rcases h with ⟨patt⟩
 
 theorem Drawing.edge_ends_are_vertices
-    {g : Drawing} {e : g.edges} {v : S2} (hv : v ∈ g.edge_ends e) : v ∈ g.vertices := by
+    {g : Drawing} {e : g.edges} {v : S2} (hvee : v ∈ g.edge_ends e) : v ∈ g.vertices := by
   by_contra hvv
-  have hvu: v ∈ g.univ := by
-    sorry
-  have hv: v ∈ g.edges_union := by simp [PreDrawing.edges_union]; tauto
-  clear hvv hvu
 
   obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e.val e.prop
-  have h_joined : ∀ x ∈ e.val, Joined x ⟨v, hv⟩ := by
-    intro x hx
+  have h_not_joined : ∀ x ∈ e.val, ¬Joined x v := by
     sorry
-  have h_not_joined : ∀ x ∈ e.val, ¬Joined x ⟨v, hv⟩ := by
+  have h_joined : ∀ x ∈ e.val, Joined x v := by
     intro x hx
     sorry
 
   set x := (f ⟨1/2, by simp; linarith⟩).val with hx
-  have : x ∈ (e.val : Set S2) := by
+  have : x ∈ e.val := by
     sorry
-  have hx : x ∈ g.edges_union := by
-    sorry
-  have hx' : ⟨x, hx⟩ ∈ e.val := by
-    sorry
-  specialize h_joined ⟨x, hx⟩ hx'
-  specialize h_not_joined ⟨x, hx⟩ hx'
+  specialize h_joined x
+  specialize h_not_joined x
   tauto
+  -- have : x ∈ (e.val : Set S2) := by
+  --   simp only [PreDrawing.edge_ends, closureMinusItself] at hvee
+  --   sorry
+  -- have hx : x ∈ g.edges_union := by
+  --   sorry
+  -- have hx' : ⟨x, hx⟩ ∈ e.val := by
+  --   sorry
+  -- specialize h_joined ⟨x, hx⟩ hx'
+  -- specialize h_not_joined ⟨x, hx⟩ hx'
+  -- tauto
+  -- sorry
 
   -- have hv: v ∈ g.edges_union := by
   --   sorry
