@@ -52,17 +52,24 @@ lemma my_lemma
 -- have h : type := proof
 -- rcases h with ⟨patt⟩
 
--- set_option pp.coercions false
+set_option pp.coercions false
 
+-- example: True := 
+--   #loogle Joined
+-- 
 theorem Drawing.edge_ends_are_vertices
     {g : Drawing} {e : g.edges} {v : S2} (hvee : v ∈ g.edge_ends e) : v ∈ g.vertices := by
   by_contra hvv
 
   obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e
-  have h_not_joined : ∀ x ∈ e.val, ¬Joined x v := by
-    sorry
+  have h_not_joined : ∀ x: e.val, ¬Joined x v := by
+    intro x hx
+    -- change ¬ pathSetoid _ _ _
+    -- apply my_lemma
+    all_goals sorry
   have h_joined : ∀ x ∈ e.val, Joined x v := by
     intro x hx
+    unfold Joined
     sorry
 
   set x := (f ⟨1/2, by simp; linarith⟩).val with hx
