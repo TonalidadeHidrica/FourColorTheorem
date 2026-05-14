@@ -80,20 +80,28 @@ theorem Drawing.edge_ends_are_vertices
   --   let g (t: univInterval) := 
   --   unfold joined Joined
   --   sorry
+  have closure_e_in_univ : closure e.val ⊆ g.univ := by
+    apply closure_minimal _ g.univ_closed
+    trans g.edges_union
+    · have := e.prop
+      simp only [PreDrawing.edges, Set.mem_image] at this
+      obtain ⟨e', _, he2⟩ := this
+      simp [← he2]
+    · simp [PreDrawing.edges_union]
+  have edges_in_univ : e.val ⊆ g.univ := by
+    -- simp [PreDrawing.edges]
+    sorry
 
   obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e
   let tx: unitInterval := ⟨1/2, by simp; linarith⟩
   set x: S2 := (f tx).val with hx
 
   have x_in_closure_e: x ∈ closure e.val := by simp only [hx, Subtype.coe_prop]
-  have x_in_univ : x ∈ g.univ := by
-    sorry
+  have x_in_univ : x ∈ g.univ := Set.mem_of_subset_of_mem closure_e_in_univ x_in_closure_e
   have v_in_closure_e : v ∈ closure e.val := by
-    sorry
-  have v_in_univ : v ∈ g.univ := by
-    sorry
-  have closure_e_in_univ : closure e.val ⊆ g.univ := by
-    sorry
+    unfold PreDrawing.edge_ends closureMinusItself at hvee
+    exact Set.mem_of_mem_inter_left hvee
+  have v_in_univ : v ∈ g.univ := Set.mem_of_subset_of_mem closure_e_in_univ v_in_closure_e
 
   have x_in_e : x ∈ e.val := by
     by_contra h2
@@ -125,6 +133,8 @@ theorem Drawing.edge_ends_are_vertices
     · tauto
     · simp [tv]
   have h_not_joined : ¬Joined (⟨x, x_in_univ⟩: g.univ) ⟨v, v_in_univ⟩ := by
+    change ¬ pathSetoid _ _ _
+    apply my_lemma (c := Set.inclusion (edges_in_univ e) '' e)
     sorry
   
   tauto
