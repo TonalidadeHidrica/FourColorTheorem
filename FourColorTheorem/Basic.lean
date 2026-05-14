@@ -30,10 +30,6 @@ structure Drawing extends PreDrawing where
   edges_finite : Finite toPreDrawing.edges
   edges_IsDrawingEdge : ∀ e: toPreDrawing.edges, IsDrawingEdge e
 
--- set_option pp.coercions false
--- set_option pp.coercions.types true
--- set_option pp.notation false
-
 lemma my_lemma
     {α : Type*} {r : Setoid α} {c : Set α} (hc : c ∈ r.classes)
     {x y : α} (hx : x ∈ c) (hy : y ∉ c) :
@@ -52,42 +48,95 @@ lemma my_lemma
 -- have h : type := proof
 -- rcases h with ⟨patt⟩
 
-set_option pp.coercions false
+-- set_option pp.fieldNotation false
+-- set_option pp.coercions false
+-- set_option pp.proofs.threshold 50
+-- set_option pp.numericTypes true
+
+instance : PathConnectedSpace unitInterval := by
+  unfold unitInterval 
+  have := (convex_Icc (0 : ℝ) 1).isPathConnected (by exact Set.Nonempty.of_subtype)
+  rw [← isPathConnected_iff_pathConnectedSpace]
+  tauto
 
 -- example: True := 
 --   #loogle Joined
 -- 
 theorem Drawing.edge_ends_are_vertices
     {g : Drawing} {e : g.edges} {v : S2} (hvee : v ∈ g.edge_ends e) : v ∈ g.vertices := by
-  by_contra hvv
+  -- by_contra hvv
+
+  -- obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e
+  -- have v_in_univ: v ∈ g.univ := by
+  --   sorry
+  -- have x_in_univ (x: e.val): x.val ∈ g.univ := by
+  --   sorry
+  -- let joined (x: e.val) := Joined (⟨x.val, x_in_univ x⟩: g.univ) ⟨v, v_in_univ⟩
+  -- have h_not_joined (x: e.val) : ¬joined x := by
+  --   -- change ¬ pathSetoid _ _ _
+  --   -- apply my_lemma
+  --   all_goals sorry
+  -- have h_joined (x: e.val) : joined x := by
+  --   let g (t: univInterval) := 
+  --   unfold joined Joined
+  --   sorry
 
   obtain ⟨f, hf⟩ := g.edges_IsDrawingEdge e
-  have h_not_joined : ∀ x: e.val, ¬Joined x v := by
-    intro x hx
-    -- change ¬ pathSetoid _ _ _
-    -- apply my_lemma
-    all_goals sorry
-  have h_joined : ∀ x ∈ e.val, Joined x v := by
-    intro x hx
-    unfold Joined
+  let tx: unitInterval := ⟨1/2, by simp; linarith⟩
+  set x: S2 := (f tx).val with hx
+
+  have x_in_closure_e: x ∈ closure e.val := by simp only [hx, Subtype.coe_prop]
+  have x_in_univ : x ∈ g.univ := by
+    sorry
+  have v_in_closure_e : v ∈ closure e.val := by
+    sorry
+  have v_in_univ : v ∈ g.univ := by
+    sorry
+  have closure_e_in_univ : closure e.val ⊆ g.univ := by
     sorry
 
-  set x := (f ⟨1/2, by simp; linarith⟩).val with hx
-  have : x ∈ e.val := by
-    have h1: x ∈ closure (e: Set S2) := by simp only [hx, Subtype.coe_prop]
+  have x_in_e : x ∈ e.val := by
     by_contra h2
-    have := Set.mem_diff_of_mem h1 h2
+    have := Set.mem_diff_of_mem x_in_closure_e h2
     unfold closureMinusItself at hf
     simp only [hx, hf, Set.mem_insert_iff, Set.mem_singleton_iff] at this
     rcases this with h | h <;> (
       rw [← Subtype.ext_iff] at h
       rw [Function.Injective.eq_iff (Homeomorph.injective f)] at h
       apply congr_arg Subtype.val at h
-      simp at h
+      simp [tx] at h
     )
-  specialize h_joined x
-  specialize h_not_joined x
+
+  have h_joined : Joined (⟨x, x_in_univ⟩: g.univ) ⟨v, v_in_univ⟩ := by
+    let tv := f.symm ⟨v, v_in_closure_e⟩
+    let h := Set.inclusion closure_e_in_univ ∘ f
+    let p := PathConnectedSpace.joined tx tv |>.somePath |>.map (f := h) ?cont
+    case cont =>
+      simp only [Homeomorph.comp_continuous_iff', h]
+      apply continuous_inclusion
+    use p <;> (
+      unfold p h
+      simp only [Function.comp_apply]
+      simp only [ContinuousMap.toFun_eq_coe]
+      simp only [ContinuousMap.coe_coe]
+      erw [Path.map_coe]
+      simp
+    )
+    · tauto
+    · simp [tv]
+  have h_not_joined : ¬Joined (⟨x, x_in_univ⟩: g.univ) ⟨v, v_in_univ⟩ := by
+    sorry
+  
   tauto
+
+  -- have h_joined (x: e.val) : joined x := by
+
+  -- specialize h_joined x
+  -- specialize h_not_joined x
+  -- tauto
+
+  -- all_goals sorry
+
   -- have : x ∈ (e.val : Set S2) := by
   --   simp only [PreDrawing.edge_ends, closureMinusItself] at hvee
   --   sorry
@@ -163,7 +212,7 @@ def Drawing.toGraph (g : Drawing) : Graph g.vertices g.edges where
   edge_mem_iff_exists_isLink := by
     simp only [Set.mem_univ, true_iff]
     intro e
-    obtain ⟨hom, hhom⟩ := g.edges_IsDrawingEdge e.val e.prop
+    -- obtain ⟨hom, hhom⟩ := g.edges_IsDrawingEdge e.val e.prop
     sorry
   left_mem_of_isLink := by simp
 
